@@ -1,0 +1,103 @@
+{
+  "sample": true,
+  "note": "",
+  "file": "data/musteriler-ornek.csv",
+  "mode": "skip",
+  "dryRun": true,
+  "startedAt": "2026-01-04T10:00:00.000Z",
+  "finishedAt": "2026-01-04T10:00:01.200Z",
+  "totals": {
+    "rows": 20,
+    "created": 14,
+    "updated": 0,
+    "skippedDuplicate": 3,
+    "invalid": 0,
+    "warnings": 6
+  },
+  "invalidRows": [],
+  "duplicates": [
+    {
+      "rowNumber": 7,
+      "by": "phone",
+      "existingCustomerId": 1,
+      "incoming": {
+        "firstName": "fatma nur",
+        "lastName": "yilmaz",
+        "phone": "905321112233",
+        "email": "fatma@mail.com",
+        "address": "Adana",
+        "note": "Ayni kisi mi?"
+      }
+    },
+    {
+      "rowNumber": 12,
+      "by": "phone",
+      "existingCustomerId": 10,
+      "incoming": {
+        "firstName": "Ali",
+        "lastName": "Ozturk",
+        "phone": "905554443322",
+        "email": "ali.ozturk@mail.com",
+        "address": null,
+        "note": "Duplicate supheli"
+      }
+    },
+    {
+      "rowNumber": 16,
+      "by": "heuristic",
+      "existingRowNumber": 1,
+      "incoming": {
+        "firstName": "Ahmet",
+        "lastName": "Yilmaz",
+        "phone": "905321112233",
+        "email": "ahmet.yilmaz@mail.com",
+        "address": "Istanbul",
+        "note": "Ayni kisi mi kontrol"
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "rowNumber": 3,
+      "warnings": [
+        "email_invalid_dropped"
+      ],
+      "incoming": {
+        "firstName": "Ayse",
+        "lastName": "KARA",
+        "phone": "905321112233",
+        "email": null,
+        "address": null,
+        "note": "Email hatali"
+      }
+    },
+    {
+      "rowNumber": 9,
+      "warnings": [
+        "phone_too_short_dropped"
+      ],
+      "incoming": {
+        "firstName": "Elif",
+        "lastName": null,
+        "phone": null,
+        "email": "elif@mail.com",
+        "address": "Istanbul",
+        "note": "Telefon eksik"
+      }
+    },
+    {
+      "rowNumber": 13,
+      "warnings": [
+        "firstName_inferred"
+      ],
+      "incoming": {
+        "firstName": "Merve",
+        "lastName": "Kaya",
+        "phone": "905321112233",
+        "email": "mervekaya@mail.com",
+        "address": "Manisa",
+        "note": "Ad alaninda tirnak var"
+      }
+    }
+  ]
+}
