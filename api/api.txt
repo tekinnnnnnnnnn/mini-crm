@@ -1,7 +1,27 @@
-GET /api/customers – kısmen çalışıyor
+MiniCRM API Uçları (güncel)
 
-POST /api/customers – temel haliyle çalışıyor
+Customers
+- GET /api/customers?limit=50&offset=0
+- POST /api/customers
+- GET /api/customers/:id
+- PUT /api/customers/:id
+- DELETE /api/customers/:id
 
-GET /api/orders – basit listeleme
+Orders
+- GET /api/orders?limit=20&offset=0&status=draft&customerId=1
+- POST /api/orders  (customerId veya guestCustomer ile, items zorunlu)
+- GET /api/orders/:id
+- POST /api/orders/:id/status
 
-Diğer uçlar planlanmıştır ama henüz yazılmamıştır.
+Products
+- GET /api/products?limit=50&offset=0
+- POST /api/products
+- GET /api/products/:id
+- PUT /api/products/:id
+- DELETE /api/products/:id
+- POST /api/products/:id/prices
+
+Notlar
+- Trace ID: request/response header `x-trace-id`
+- Detaylı şema: docs/api/openapi.yaml
+

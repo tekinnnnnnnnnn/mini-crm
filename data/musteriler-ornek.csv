@@ -1,0 +1,22 @@
+Ad,Soyad,Telefon,Email,Adres,Not
+Ahmet,Yılmaz,"+90 532 111 22 33",ahmet.yilmaz@mail.com,"İstanbul, Kadıköy",—
+Mehmet Ali,,05321112233,,Ankara,Soyadı yok
+Ayşe,KARA,5321112233,ayse.kara@mail,,Email hatalı
+Hasan,Demir,"+90532 1112233",hasan.demir@mail.com,İzmir,
+Hakan A.,Çelik,905321112233,hakan.celik@gmail.com,İstanbul,
+Fatma Nur,Yilmaz,"0 532 111 22 33",,Adana,Duplicate olabilir
+fatma nur,yilmaz,"+90 (532) 111 2233",fatma@mail.com,Adana,Aynı kişi mi?
+,Doğan,532—111—2233,dogan@mail.com,Bursa,Adı boş
+Elif,,1112233,elif@mail.com,İstanbul,Telefon eksik
+Ali,Öztürk,"+90 555 444 3322",,,
+Ali,Ozturk,"+90 555 444 3322",ali.ozturk@mail.com,,Duplicate şüpheli
+"“Merve”",Kaya,0532-111-22-33,mervekaya@mail.com,Manisa,"Ad alanında tırnak var"
+Murat,Şahin,"+90 532 1112233",,Konya,Email eksik
+Ahmet,Yılmaz,+905321112233,ahmet.yilmaz@mail.com,İstanbul,Aynı kişi mi kontrol
+Caner,Taş,0532 111,caner.tas@mail.com,-,Telefon eksik
+Ceren,,"+90 5321112233",ceren@@mail.com,İstanbul,Email hatalı
+Yusuf,Demİr,0(532)1112233,yusuf.demir@mail.com,Hatay,Soyad farklı yazılmış
+Esra,Arslan,+90-532-111-22-33,esra_arslanmail.com,Antalya,@ eksik
+Muhammed,Ak,5321112233,,İstanbul,Email yok
+M.,Demir,5321112233,mdemir@mail.com,,Ad çok belirsiz
+
