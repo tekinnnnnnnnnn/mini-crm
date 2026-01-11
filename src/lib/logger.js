@@ -1,22 +1,25 @@
 const { createLogger, transports, format } = require('winston');
+const config = require('../config');
+
+const isProd = config.app.env === 'production';
+
+const devFormat = format.combine(
+  format.colorize({ all: true }),
+  format.printf(({ level, message, timestamp, stack, ...meta }) => {
+    const metaText = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+    if (stack) return `${timestamp} [${level}] ${message} - ${stack}${metaText}`;
+    return `${timestamp} [${level}] ${message}${metaText}`;
+  })
+);
 
 const logger = createLogger({
-  level: process.env.LOG_LEVEL || 'debug',
+  level: config.log.level,
   format: format.combine(
     format.timestamp(),
-    // TODO: prod için farklı format düşünülüyor
-    format.printf(({ level, message, timestamp, stack }) => {
-      if (stack) {
-        return `${timestamp} [${level}] ${message} - ${stack}`;
-      }
-      return `${timestamp} [${level}] ${message}`;
-    })
+    format.errors({ stack: true }),
+    isProd ? format.json() : devFormat
   ),
-  transports: [
-    new transports.Console(),
-    // TODO: file transport eklenmişti sanırım, bakılacak
-  ]
+  transports: [new transports.Console()]
 });
 
-// Bazen direkt console.log da kullanılmış projede…
 module.exports = logger;
