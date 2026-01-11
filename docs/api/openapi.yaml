@@ -1,0 +1,537 @@
+openapi: 3.0.3
+info:
+  title: MiniCRM API
+  version: 0.1.0
+  description: MiniCRM REST API (customers, orders) - proje senaryosu için.
+servers:
+  - url: http://localhost:3000
+tags:
+  - name: Customers
+  - name: Orders
+  - name: Products
+components:
+  parameters:
+    TraceIdHeader:
+      name: x-trace-id
+      in: header
+      required: false
+      description: Trace ID; gönderilmezse sunucu üretir ve response header'ında döner.
+      schema:
+        type: string
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
+    Customer:
+      type: object
+      properties:
+        id: { type: integer }
+        firstName: { type: string }
+        lastName: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        isActive: { type: boolean, nullable: true }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+      required: [id, firstName]
+    CustomerCreate:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+      required: [firstName]
+    CustomerUpdate:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+    Order:
+      type: object
+      properties:
+        id: { type: integer }
+        customerId: { type: integer, nullable: true }
+        guestFirstName: { type: string, nullable: true }
+        guestLastName: { type: string, nullable: true }
+        guestPhone: { type: string, nullable: true }
+        guestEmail: { type: string, nullable: true }
+        requiresShipping: { type: boolean }
+        shippingAddress: { type: string, nullable: true }
+        status: { type: string }
+        totalAmount: { type: number, nullable: true }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+      required: [id, status]
+    OrderItem:
+      type: object
+      properties:
+        id: { type: integer }
+        orderId: { type: integer }
+        productId: { type: integer }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        lineTotal: { type: number }
+      required: [id, orderId, productId, quantity, unitPrice, lineTotal]
+    GuestCustomer:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+      required: [firstName]
+    OrderCreate:
+      type: object
+      properties:
+        customerId:
+          type: integer
+          nullable: true
+          description: Mevcut müşteri id (opsiyonel). Yoksa guestCustomer gönderin.
+        guestCustomer:
+          $ref: '#/components/schemas/GuestCustomer'
+        requiresShipping: { type: boolean, default: false }
+        shippingAddress:
+          type: string
+          nullable: true
+          description: Zorunlu (requiresShipping=true ise).
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            properties:
+              productId: { type: integer }
+              quantity: { type: integer }
+              unitPrice: { type: number }
+            required: [productId, quantity, unitPrice]
+        status:
+          type: string
+          description: "Allowed: draft|preparing|shipped|delivered|cancelled"
+        totalAmount: { type: number, nullable: true }
+      required: [items]
+    OrderStatusUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          description: "Allowed: draft|preparing|shipped|delivered|cancelled"
+      required: [status]
+    Product:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        sku: { type: string, nullable: true }
+        trackStock: { type: boolean }
+        stockQuantity: { type: integer, nullable: true }
+        isActive: { type: boolean }
+        prices:
+          type: array
+          items: { $ref: '#/components/schemas/ProductPrice' }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+      required: [id, name, trackStock, isActive]
+    ProductCreate:
+      type: object
+      properties:
+        name: { type: string }
+        sku: { type: string, nullable: true }
+        trackStock: { type: boolean, default: true }
+        stockQuantity:
+          type: integer
+          nullable: true
+          description: Zorunlu (trackStock=true ise).
+      required: [name]
+    ProductUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        sku: { type: string, nullable: true }
+        trackStock: { type: boolean }
+        stockQuantity: { type: integer, nullable: true }
+    ProductPrice:
+      type: object
+      properties:
+        id: { type: integer }
+        productId: { type: integer }
+        priceType: { type: string }
+        currency: { type: string }
+        amount: { type: number }
+        isActive: { type: boolean }
+      required: [id, productId, priceType, currency, amount, isActive]
+    ProductPriceUpsert:
+      type: object
+      properties:
+        priceType: { type: string, description: "Örn: retail|wholesale|campaign" }
+        currency: { type: string, default: TRY }
+        amount: { type: number }
+      required: [priceType, amount]
+paths:
+  /api/customers:
+    get:
+      tags: [Customers]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+      summary: List customers
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Customer' }
+    post:
+      tags: [Customers]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+      summary: Create customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/customers/{id}:
+    get:
+      tags: [Customers]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Get customer by id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    put:
+      tags: [Customers]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Update customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CustomerUpdate' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Customer' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    delete:
+      tags: [Customers]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Delete customer
+      responses:
+        '204':
+          description: No content
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/orders:
+    get:
+      tags: [Orders]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 20 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+        - name: status
+          in: query
+          required: false
+          schema: { type: string }
+        - name: customerId
+          in: query
+          required: false
+          schema: { type: integer }
+      summary: List orders
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Order' }
+    post:
+      tags: [Orders]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+      summary: Create order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/orders/{id}:
+    get:
+      tags: [Orders]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Get order by id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/orders/{id}/status:
+    post:
+      tags: [Orders]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Update order status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderStatusUpdate' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/products:
+    get:
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, default: 0 }
+      summary: List products (with prices)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Product' }
+    post:
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+      summary: Create product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/products/{id}:
+    get:
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Get product by id
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    put:
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Update product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductUpdate' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+    delete:
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Deactivate product (soft delete)
+      responses:
+        '204':
+          description: No content
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+  /api/products/{id}/prices:
+    post:
+      tags: [Products]
+      parameters:
+        - $ref: '#/components/parameters/TraceIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      summary: Upsert product price type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProductPriceUpsert' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
