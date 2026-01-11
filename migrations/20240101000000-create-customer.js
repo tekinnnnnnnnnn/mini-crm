@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Not: Model ile birebir uyumlu değil (isActive alanı yok).
- */
-
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('customers', {
